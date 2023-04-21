@@ -1,0 +1,17 @@
+[package]
+name = "ecad_database_updater"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.70"
+calamine = "0.19.1"
+csv = "1.2.1"
+encoding_rs = "0.8.32"
+encoding_rs_io = "0.1.7"
+odbc-api = "0.57.0"
+serde = { version = "1.0.159", features = ["derive"] }
+serde_derive = "1.0.160"
+toml = "0.7.3"

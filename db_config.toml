@@ -1,0 +1,9 @@
+[database]
+connection_driver = 'ODBC Driver 17 for SQL Server'
+server_name = 'SRVCHFRA104\INST4'
+name = 'ECAD_Parts'
+uid = 'ecad_user'
+password = 'E34Corona'
+
+[logging]
+logfile_name = 'dublicates.txt'
