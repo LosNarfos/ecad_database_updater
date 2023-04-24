@@ -5,7 +5,7 @@ use serde::Deserialize;
 
 
 
-#[derive(Clone, Deserialize, Debug)]
+#[derive(Clone, Deserialize, Debug, Default)]
 pub struct PartFromSAP {
     #[serde(default, rename = "Default Stock Code")]
     pub default_stock_id: String,
@@ -35,6 +35,10 @@ pub struct PartFromSAP {
     pub device_marking: String,
     #[serde(default, rename = "SAP_Price_Info")]
     pub price_info: String,
+    #[serde(default, rename = "Stock_2100")]
+    pub stock_2100: String,
+    #[serde(default, rename = "Stock_2720")]
+    pub stock_2720: String,
 }
 
 
@@ -69,7 +73,7 @@ pub fn clean_up_csv_file_from_sap() -> Result<(), std::io::Error> {
 
 }
 
-pub fn read_sap_export() -> Result<(), std::io::Error> {  
+pub fn read_sap_export() -> Result<Vec<PartFromSAP>, std::io::Error> {  
 
     // clean up buggy CSV file given by SAP
     clean_up_csv_file_from_sap()?;
@@ -90,5 +94,5 @@ pub fn read_sap_export() -> Result<(), std::io::Error> {
             Err(row) => println!("{}: {:?}", index + 2, row),
         }
     }
-    Ok(())
+    Ok(parts)
 }

@@ -21,7 +21,7 @@ pub struct PartFromCDB {
     #[serde(default, rename = "Library Ref")]
     pub library_ref: String,
     #[serde(default, rename = "Library Path")]
-    pub ibrary_path: String,
+    pub library_path: String,
     #[serde(default, rename = "Footprint Ref")]
     pub footprint_ref1: String,
     #[serde(default, rename = "Footprint Path")]
@@ -52,6 +52,51 @@ pub struct PartFromCDB {
     pub info4: String,
     #[serde(default, rename = "Info5")]
     pub info5: String,
+    #[serde(default, rename = "Info6")]
+    pub info6: String,
+    #[serde(default, rename = "Info7")]
+    pub info7: String,
+    #[serde(default, rename = "Info8")]
+    pub info8: String,
+    #[serde(default, rename = "Info9")]
+    pub info9: String,
+    #[serde(default, rename = "Info10")]
+    pub info10: String,
+
+    // not yet implemented on CDB side
+    #[serde(default, rename = "CDB State")]
+    pub cdb_state: String,
+    #[serde(default, rename = "Manufacturer")]
+    pub manufacturer: String,
+    #[serde(default, rename = "Manufacturer_number")]
+    pub manufacturer_number: String,
+    #[serde(default, rename = "Category")]
+    pub category: String,
+    #[serde(default, rename = "Type")]
+    pub part_type: String,
+    #[serde(default, rename = "Help_URL")]
+    pub help_url: String,
+    #[serde(default, rename = "datasheet_URL")]
+    pub datasheet_url: String,
+    #[serde(default, rename = "Footprint Ref3")]
+    pub footprint_ref3: String,
+    #[serde(default, rename = "Footprint Ref4")]
+    pub footprint_ref4: String,
+    #[serde(default, rename = "Footprint Ref5")]
+    pub footprint_ref5: String,
+    #[serde(default, rename = "Footprint Path 3")]
+    pub footprint_path3: String,
+    #[serde(default, rename = "Footprint Path 4")]
+    pub footprint_path4: String,
+    #[serde(default, rename = "Footprint Path 5")]
+    pub footprint_path5: String,
+    #[serde(default, rename = "Model")]
+    pub model: String,
+    #[serde(default, rename = "Model Ref")]
+    pub model_ref: String,
+    #[serde(default, rename = "Model Path")]
+    pub model_path: String,
+    
 }
 
 pub fn read_cdb_export(filename: &str) -> Result<Vec<PartFromCDB>, Error> {

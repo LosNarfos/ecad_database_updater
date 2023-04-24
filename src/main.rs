@@ -6,15 +6,15 @@ mod parts;
 
 use import::cdb_import::read_cdb_export;
 use import::sap_import::read_sap_export;
-//use parts::Part;
-//use parts::capacitor::parts_polish_capacitor;
+use parts::capacitor::parts_polish_capacitor;
+use parts::connector::parts_polish_connector;
 use std::error::Error;
 
 
 fn run() -> Result<(), Box<dyn Error>> {
 
     // get content from SAP export
-    let sap_all_parts = read_sap_export()?;
+    let sap_parts = read_sap_export()?;
 
     // get content from CDB export
     let cdb_capacitor = read_cdb_export("Capacitor")?;
@@ -29,8 +29,8 @@ fn run() -> Result<(), Box<dyn Error>> {
     let cdb_transistor = read_cdb_export("Transistor")?;
 
     // polish cdb data for better readability in Altium
-    //let mut parts: Vec<Part> = Vec::new();
-    //parts_polish_capacitor(&cdb_capacitor, &sap_all_parts, &parts);
+    let capacitor = parts_polish_capacitor(&cdb_capacitor, &sap_parts);
+    let connector = parts_polish_connector(&cdb_connector,&sap_parts);
 
 
     Ok(())

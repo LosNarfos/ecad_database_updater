@@ -3,18 +3,11 @@ use super::Part;
 
 impl Part {
     // methods specific to capacitors
-
-    fn capacitor_check_value(&mut self, cdb_part: &PartFromCDB, sap_part: &PartFromSAP) -> &mut Self{
-        if cdb_part.value.is_empty() {
-            self.value = cdb_part.value.clone() + "V"; // add unit to value field
-        }
-        self
-    }
 }
 
-pub fn parts_polish_capacitor(cdb_parts: &Vec<PartFromCDB>, sap_parts: &Vec<PartFromSAP>) ->  Vec<Part> {
+pub fn parts_polish_connector(cdb_parts: &Vec<PartFromCDB>, sap_parts: &Vec<PartFromSAP>) ->  Vec<Part> {
 
-    println!("\n  Cleaning up:  Capacitor");
+    println!("\n  Cleaning up:  Connector");
     let mut parts: Vec<Part> = Vec::new();
 
     for (index, cdb_part) in cdb_parts.iter().enumerate() {
@@ -35,7 +28,6 @@ pub fn parts_polish_capacitor(cdb_parts: &Vec<PartFromCDB>, sap_parts: &Vec<Part
             .check_second_source(cdb_part, &sap_part)
             .check_stock_2100(cdb_part, &sap_part)
             .check_stock_2720(cdb_part, &sap_part)
-            .capacitor_check_value(cdb_part, &sap_part)
             .check_voltage(cdb_part, &sap_part)
             .check_current(cdb_part, &sap_part)
             .check_power(cdb_part, &sap_part)
@@ -49,11 +41,3 @@ pub fn parts_polish_capacitor(cdb_parts: &Vec<PartFromCDB>, sap_parts: &Vec<Part
     }
     parts
 }
-
-
-
-
-
-
-
-
