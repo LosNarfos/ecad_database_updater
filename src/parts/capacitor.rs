@@ -1,4 +1,6 @@
-use crate::{PartFromCDB, PartFromSAP};
+
+use crate::import::{cdb_import::PartFromCDB, sap_import::PartFromSAP};
+
 
 use super::Part;
 

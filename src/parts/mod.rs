@@ -1,5 +1,5 @@
-use crate::PartFromCDB;
-use crate::PartFromSAP;
+use crate::import::cdb_import::PartFromCDB;
+use crate::import::sap_import::PartFromSAP;
 
 pub mod capacitor;
 
@@ -30,6 +30,7 @@ pub struct Part {
     pub info4: String,
     pub info5: String,
 }
+
 impl Part {
     fn part_check_cdb_number(&mut self, cdb_part: &PartFromCDB, sap_part: Option<&PartFromSAP>) -> &mut Self{
         self.cdb_number = cdb_part.cdb_number.clone();
