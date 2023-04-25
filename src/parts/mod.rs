@@ -4,6 +4,19 @@ use crate::import::sap_import::PartFromSAP;
 pub mod capacitor;
 pub mod connector;
 
+pub enum PartType {
+    Capacitor,
+    Connector,
+    Diode,
+    Ic,
+    Inductor,
+    Mechanic,
+    Opto,
+    Other,
+    Resistor,
+    Transistor
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct Part {
     pub cdb_number: String,
@@ -61,11 +74,10 @@ pub struct Part {
 }
 
 impl Part {
-    fn copy_content(&mut self, cdb_part: &PartFromCDB, sap_part: &PartFromSAP) -> &mut Self{
-        // 1to1 copy of the content from cdb to the new struct to be send to the database
-        // comment out what needs to be checked in its own function
 
-        // strings which are empty must always be filled via own function
+    
+    fn copy_content(&mut self, cdb_part: &PartFromCDB, sap_part: &PartFromSAP) -> &mut Self{
+        // 1-to-1 copy of the content from cdb and SAP to the new struct to be send to the database
 
         self.cdb_number     = cdb_part.cdb_number.clone();
         self.sap_number     = cdb_part.sap_number.clone();
@@ -179,6 +191,12 @@ impl Part {
     fn check_height(&mut self, cdb_part: &PartFromCDB, sap_part: &PartFromSAP) -> &mut Self{
         // convert height field to always use "mm"
         let mut base = cdb_part.height.clone();
+
+        if base.is_empty() || base == "0.0m" {
+            self.height = "".to_string();
+            return self
+        }
+
         base.truncate(base.len() - 1 );
         let mut base = base.parse::<f32>().unwrap();
         let exponent = cdb_part.height.clone().chars().last().unwrap();
@@ -215,4 +233,54 @@ impl Part {
     }
 
 
+}
+
+
+pub fn parts_polish(part_type: PartType, cdb_parts: Vec<PartFromCDB>, sap_parts: &Vec<PartFromSAP>) ->  Vec<Part> {
+
+    let mut parts: Vec<Part> = Vec::new();
+
+    for (index, cdb_part) in cdb_parts.iter().enumerate() {
+        
+        let mut part = Part { .. Default::default() };
+
+        // Search the SAP-export for a matching SAP number
+        let sap_part = match sap_parts.into_iter().position(|x| x.default_stock_id == cdb_part.sap_number) {
+            Some(row) => sap_parts[row].clone(),
+            None => PartFromSAP::default(),
+        };
+
+        // copy all fields to new part struct which represents the database
+        part.copy_content(cdb_part, &sap_part);
+
+        // modify the common fields
+        part
+            .check_life_cycle(cdb_part, &sap_part)
+            .check_second_source(cdb_part, &sap_part)
+            .check_stock_2100(cdb_part, &sap_part)
+            .check_stock_2720(cdb_part, &sap_part)
+            .check_price(cdb_part, &sap_part)
+            .check_temperature(cdb_part, &sap_part)
+            .check_height(cdb_part, &sap_part)
+            .check_voltage(cdb_part, &sap_part)
+            .check_current(cdb_part, &sap_part)
+            .check_power(cdb_part, &sap_part)
+            .check_tolerance(cdb_part, &sap_part);
+
+        // modify the fields which differ between classes
+        match part_type {
+            PartType::Capacitor => part.polish_capacitor(cdb_part, &sap_part),
+            PartType::Connector => part.polish_connector(cdb_part, &sap_part),
+            PartType::Diode => todo!(),
+            PartType::Ic => todo!(),
+            PartType::Inductor => todo!(),
+            PartType::Mechanic => todo!(),
+            PartType::Opto => todo!(),
+            PartType::Other => todo!(),
+            PartType::Resistor => todo!(),
+            PartType::Transistor => todo!(),
+        }
+        parts.push(part);
+    }
+    parts
 }

@@ -3,11 +3,14 @@
 
 mod import;
 mod parts;
+mod database;
 
+
+use database::insert_data;
 use import::cdb_import::read_cdb_export;
 use import::sap_import::read_sap_export;
-use parts::capacitor::parts_polish_capacitor;
-use parts::connector::parts_polish_connector;
+use parts::{parts_polish, PartType};
+
 use std::error::Error;
 
 
@@ -23,15 +26,25 @@ fn run() -> Result<(), Box<dyn Error>> {
     let cdb_ic = read_cdb_export("IC")?;
     let cdb_inductor = read_cdb_export("Inductor")?;
     let cdb_mechanic = read_cdb_export("Mechanic")?;
-    let cdb_optor = read_cdb_export("Opto")?;
+    let cdb_opto = read_cdb_export("Opto")?;
     let cdb_other = read_cdb_export("Other")?;
     let cdb_resistor = read_cdb_export( "Resistor")?;
     let cdb_transistor = read_cdb_export("Transistor")?;
 
-    // polish cdb data for better readability in Altium
-    let capacitor = parts_polish_capacitor(&cdb_capacitor, &sap_parts);
-    let connector = parts_polish_connector(&cdb_connector,&sap_parts);
+    // Modify fields
+    let capacitor = parts_polish(PartType::Capacitor, cdb_capacitor, &sap_parts);
+    let connector = parts_polish(PartType::Connector, cdb_connector, &sap_parts);
+    // let diode = parts_polish(PartType::Diode, cdb_diode, &sap_parts);
+    // let ic = parts_polish(PartType::Ic, cdb_ic, &sap_parts);
+    // let inductor = parts_polish(PartType::Inductor, cdb_inductor, &sap_parts);
+    // let mechanic = parts_polish(PartType::Mechanic, cdb_mechanic, &sap_parts);
+    // let opto = parts_polish(PartType::Opto, cdb_opto, &sap_parts);
+    // let other = parts_polish(PartType::Other, cdb_other, &sap_parts);
+    // let transistor = parts_polish(PartType::Transistor, cdb_transistor, &sap_parts);
+    // let resistor = parts_polish(PartType::Resistor, cdb_resistor, &sap_parts);
 
+    // send to database
+    insert_data(PartType::Capacitor, capacitor)?;
 
     Ok(())
 }
