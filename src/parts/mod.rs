@@ -3,6 +3,14 @@ use crate::import::sap_import::PartFromSAP;
 
 pub mod capacitor;
 pub mod connector;
+pub mod diode;
+pub mod ic;
+pub mod inductor;
+pub mod mechanic;
+pub mod opto;
+pub mod other;
+pub mod resistor;
+pub mod transistor;
 
 pub enum PartType {
     Capacitor,
@@ -53,6 +61,7 @@ pub struct Part {
     pub info9: String,
     pub info10: String,
     pub height: String,
+    pub pins: String,
     pub mttf: String,
     pub help_url: String,
     pub datasheet_url: String,
@@ -119,10 +128,15 @@ impl Part {
         self.library_ref = cdb_part.library_ref.clone();
         self.library_path = cdb_part.library_path.clone();
         self.footprint_ref1 = cdb_part.footprint_ref1.clone();
+        self.footprint_path1 = cdb_part.footprint_path1.clone();
         self.footprint_ref2 = cdb_part.footprint_ref2.clone();
+        self.footprint_path2 = cdb_part.footprint_path2.clone();
         self.footprint_ref3 = cdb_part.footprint_ref3.clone();
+        self.footprint_path3 = cdb_part.footprint_path3.clone();
         self.footprint_ref4 = cdb_part.footprint_ref4.clone();
+        self.footprint_path4 = cdb_part.footprint_path4.clone();
         self.footprint_ref5 = cdb_part.footprint_ref5.clone();
+        self.footprint_path5 = cdb_part.footprint_path5.clone();
         self.model = cdb_part.model.clone();
         self.model_ref = cdb_part.model_ref.clone();
         self.model_path = cdb_part.model_path.clone();
@@ -210,20 +224,26 @@ impl Part {
     }
 
     fn check_voltage(&mut self, cdb_part: &PartFromCDB, sap_part: &PartFromSAP) -> &mut Self{
-        self.voltage = cdb_part.current.clone();
-        if !cdb_part.voltage.is_empty() { self.voltage.push('V') }
+        self.voltage = cdb_part.voltage.clone();
+        if !cdb_part.voltage.is_empty() {
+             self.voltage.push('V')
+        }
         self
     }
 
     fn check_current(&mut self, cdb_part: &PartFromCDB, sap_part: &PartFromSAP) -> &mut Self{       
         self.current = cdb_part.current.clone();
-        if !cdb_part.current.is_empty() { self.current.push('A') }
+        if !cdb_part.current.is_empty() {
+             self.current.push('A')
+        }
         self
     }
 
     fn check_power(&mut self, cdb_part: &PartFromCDB, sap_part: &PartFromSAP) -> &mut Self{
         self.power = cdb_part.power.clone();
-        if !cdb_part.power.is_empty() { self.power.push('W') }
+        if !cdb_part.power.is_empty() {
+            self.power.push('W')
+        }
         self
     }
 
@@ -271,14 +291,14 @@ pub fn parts_polish(part_type: PartType, cdb_parts: Vec<PartFromCDB>, sap_parts:
         match part_type {
             PartType::Capacitor => part.polish_capacitor(cdb_part, &sap_part),
             PartType::Connector => part.polish_connector(cdb_part, &sap_part),
-            PartType::Diode => todo!(),
-            PartType::Ic => todo!(),
-            PartType::Inductor => todo!(),
-            PartType::Mechanic => todo!(),
-            PartType::Opto => todo!(),
-            PartType::Other => todo!(),
-            PartType::Resistor => todo!(),
-            PartType::Transistor => todo!(),
+            PartType::Diode => part.polish_diode(cdb_part, &sap_part),
+            PartType::Ic => part.polish_ic(cdb_part, &sap_part),
+            PartType::Inductor => part.polish_inductor(cdb_part, &sap_part),
+            PartType::Mechanic => part.polish_mechanic(cdb_part, &sap_part),
+            PartType::Opto => part.polish_opto(cdb_part, &sap_part),
+            PartType::Other => part.polish_other(cdb_part, &sap_part),
+            PartType::Resistor => part.polish_resistor(cdb_part, &sap_part),
+            PartType::Transistor => part.polish_transistor(cdb_part, &sap_part),
         }
         parts.push(part);
     }

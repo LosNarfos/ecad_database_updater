@@ -30,7 +30,7 @@ pub struct PartFromCDB {
     pub footprint_ref2: String,
     #[serde(default, rename = "Footprint Path 2")]
     pub footprint_path2: String,
-    #[serde(default, rename = "Altium state")]
+    #[serde(default, rename = "Altium State")]
     pub altium_state: String,
     #[serde(default, rename = "Description")]
     pub description: String,

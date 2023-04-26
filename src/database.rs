@@ -1,12 +1,9 @@
-//use anyhow::Error;
-use odbc_api::{Error, buffers::BufferDesc, Environment, ConnectionOptions};
+use std::borrow::Borrow;
+
+use odbc_api::{Error, buffers::BufferDesc, Environment, ConnectionOptions, Connection};
 use crate::parts::{PartType, Part};
 
 
-
-/// Maximum number of rows fetched with one row set. Fetching batches of rows is usually much
-/// faster than fetching individual rows.
-const BATCH_SIZE: usize = 5000;
 
 fn part_type_to_str(part_type: &PartType) -> String {
 
@@ -28,9 +25,9 @@ fn part_type_to_str(part_type: &PartType) -> String {
 fn create_insert_string(part_type: &PartType) -> String {
 
     let mut insert_string = "INSERT INTO ".to_string();
-
+    insert_string.push_str("[dbo].[");
     insert_string.push_str(part_type_to_str(part_type).as_str());
-    insert_string.push_str(" (");
+    insert_string.push_str("] (");
     
     insert_string.push_str("[CDB No], ");
     insert_string.push_str("[SAP No], ");
@@ -72,24 +69,23 @@ fn create_insert_string(part_type: &PartType) -> String {
     insert_string.push_str("[DatasheetURL], ");
     insert_string.push_str("[Library Ref], ");
     insert_string.push_str("[Library Path], ");
-    insert_string.push_str("[Footprint Ref2], ");
-    insert_string.push_str("[Footprint Path2], ");
-    insert_string.push_str("[Footprint Ref3], ");
-    insert_string.push_str("[Footprint Path3], ");
-    insert_string.push_str("[Footprint Ref4], ");
-    insert_string.push_str("[Footprint Path4], ");
-    insert_string.push_str("[Footprint Ref5], ");
-    insert_string.push_str("[Footprint Path5], ");
-    insert_string.push_str("[Footprint Path5], ");
-    insert_string.push_str("[Footprint Path5], ");
-    insert_string.push_str("[Footprint Path5], ");
+    insert_string.push_str("[Footprint Ref], ");
+    insert_string.push_str("[Footprint Path], ");
+    insert_string.push_str("[Footprint Ref 2], ");
+    insert_string.push_str("[Footprint Path 2], ");
+    insert_string.push_str("[Footprint Ref 3], ");
+    insert_string.push_str("[Footprint Path 3], ");
+    insert_string.push_str("[Footprint Ref 4], ");
+    insert_string.push_str("[Footprint Path 4], ");
+    insert_string.push_str("[Footprint Ref 5], ");
+    insert_string.push_str("[Footprint Path 5], ");
     insert_string.push_str("[Model], ");
     insert_string.push_str("[Model Ref], ");
-    insert_string.push_str("[Model Path]");
+    insert_string.push_str("[Model Path] ");
 
-    insert_string.push_str(") ");
-    
-    insert_string.push_str("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    insert_string.push_str(") VALUES (");
+    insert_string.push_str("?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?");
+    insert_string.push_str(")");
 
     insert_string
 
@@ -97,8 +93,286 @@ fn create_insert_string(part_type: &PartType) -> String {
 
    }
 
-pub fn insert_data(part_type: PartType, parts: Vec<Part>) -> Result<(), Error> {
+fn parts_to_columnar_bulk(parts: Vec<Part>) -> Vec<Vec<String>> {
     
+    let mut all_columns: Vec<Vec<String>> = Vec::new();
+    
+    let mut cdb_number: Vec<String> = Vec::new();
+    let mut sap_number: Vec<String> = Vec::new();
+    let mut part_name: Vec<String> = Vec::new();
+    let mut description: Vec<String> = Vec::new();
+    let mut altium_state: Vec<String> = Vec::new();
+    let mut cdb_state: Vec<String> = Vec::new();
+    let mut sap_state: Vec<String> = Vec::new();
+    let mut life_cycle: Vec<String> = Vec::new();
+    let mut manufacturer: Vec<String> = Vec::new();
+    let mut manufacturer_number: Vec<String> = Vec::new();
+    let mut second_source: Vec<String> = Vec::new();
+    let mut stock_2100: Vec<String> = Vec::new();
+    let mut stock_2720: Vec<String> = Vec::new();
+    let mut price: Vec<String> = Vec::new();
+    let mut category: Vec<String> = Vec::new();
+    let mut part_type: Vec<String> = Vec::new();
+    let mut value: Vec<String> = Vec::new();
+    let mut package: Vec<String> = Vec::new();
+    let mut voltage: Vec<String> = Vec::new();
+    let mut current: Vec<String> = Vec::new();
+    let mut power: Vec<String> = Vec::new();
+    let mut tolerance: Vec<String> = Vec::new();
+    let mut temperature: Vec<String> = Vec::new();
+    let mut info1: Vec<String> = Vec::new();
+    let mut info2: Vec<String> = Vec::new();
+    let mut info3: Vec<String> = Vec::new();
+    let mut info4: Vec<String> = Vec::new();
+    let mut info5: Vec<String> = Vec::new();
+    let mut info6: Vec<String> = Vec::new();
+    let mut info7: Vec<String> = Vec::new();
+    let mut info8: Vec<String> = Vec::new();
+    let mut info9: Vec<String> = Vec::new();
+    let mut info10: Vec<String> = Vec::new();
+    let mut height: Vec<String> = Vec::new();
+    let mut pins: Vec<String> = Vec::new();
+    let mut mttf: Vec<String> = Vec::new();
+    let mut help_url: Vec<String> = Vec::new();
+    let mut datasheet_url: Vec<String> = Vec::new();
+    let mut library_ref: Vec<String> = Vec::new();
+    let mut library_path: Vec<String> = Vec::new();
+    let mut footprint_ref1: Vec<String> = Vec::new();
+    let mut footprint_path1: Vec<String> = Vec::new();
+    let mut footprint_ref2: Vec<String> = Vec::new();
+    let mut footprint_path2: Vec<String> = Vec::new();
+    let mut footprint_ref3: Vec<String> = Vec::new();
+    let mut footprint_path3: Vec<String> = Vec::new();
+    let mut footprint_ref4: Vec<String> = Vec::new();
+    let mut footprint_path4: Vec<String> = Vec::new();
+    let mut footprint_ref5: Vec<String> = Vec::new();
+    let mut footprint_path5: Vec<String> = Vec::new();
+    let mut model: Vec<String> = Vec::new();
+    let mut model_ref: Vec<String> = Vec::new();
+    let mut model_path: Vec<String> = Vec::new();
+
+
+    for (index, part) in parts.iter().enumerate() {
+        cdb_number.push(part.cdb_number.clone());
+        sap_number.push(part.sap_number.clone());
+        part_name.push(part.part_name.clone());
+        description.push(part.description.clone());
+        altium_state.push(part.altium_state.clone());
+        cdb_state.push(part.cdb_state.clone());
+        sap_state.push(part.sap_state.clone());
+        life_cycle.push(part.life_cycle.clone());
+        manufacturer.push(part.manufacturer.clone());
+        manufacturer_number.push(part.manufacturer_number.clone());
+        second_source.push(part.second_source.clone());
+        stock_2100.push(part.stock_2100.clone());
+        stock_2720.push(part.stock_2720.clone());
+        price.push(part.price.clone());
+        category.push(part.category.clone());
+        part_type.push(part.part_type.clone());
+        value.push(part.value.clone());
+        package.push(part.package.clone());
+        voltage.push(part.voltage.clone());
+        current.push(part.current.clone());
+        power.push(part.power.clone());
+        tolerance.push(part.tolerance.clone());
+        temperature.push(part.temperature.clone());
+        info1.push(part.info1.clone());
+        info2.push(part.info2.clone());
+        info3.push(part.info3.clone());
+        info4.push(part.info4.clone());
+        info5.push(part.info5.clone());
+        info6.push(part.info6.clone());
+        info7.push(part.info7.clone());
+        info8.push(part.info8.clone());
+        info9.push(part.info9.clone());
+        info10.push(part.info10.clone());
+        height.push(part.height.clone());
+        pins.push(part.pins.clone());
+        mttf.push(part.mttf.clone());
+        help_url.push(part.help_url.clone());
+        datasheet_url.push(part.datasheet_url.clone());
+        library_ref.push(part.library_ref.clone());
+        library_path.push(part.library_path.clone());
+        footprint_ref1.push(part.footprint_ref1.clone());
+        footprint_path1.push(part.footprint_path1.clone());
+        footprint_ref2.push(part.footprint_ref2.clone());
+        footprint_path2.push(part.footprint_path2.clone());
+        footprint_ref3.push(part.footprint_ref3.clone());
+        footprint_path3.push(part.footprint_path3.clone());
+        footprint_ref4.push(part.footprint_ref4.clone());
+        footprint_path4.push(part.footprint_path4.clone());
+        footprint_ref5.push(part.footprint_ref5.clone());
+        footprint_path5.push(part.footprint_path5.clone());
+        model.push(part.model.clone());
+        model_ref.push(part.model_ref.clone());
+        model_path.push(part.model_path.clone());
+    }
+    
+    all_columns.push(cdb_number);
+    all_columns.push(sap_number);
+    all_columns.push(part_name);
+    all_columns.push(description);
+    all_columns.push(altium_state);
+    all_columns.push(cdb_state);
+    all_columns.push(sap_state);
+    all_columns.push(life_cycle);
+    all_columns.push(manufacturer);
+    all_columns.push(manufacturer_number);
+    all_columns.push(second_source);
+    all_columns.push(stock_2100);
+    all_columns.push(stock_2720);
+    all_columns.push(price);
+    all_columns.push(category);
+    all_columns.push(part_type);
+    all_columns.push(value);
+    all_columns.push(package);
+    all_columns.push(voltage);
+    all_columns.push(current);
+    all_columns.push(power);
+    all_columns.push(tolerance);
+    all_columns.push(temperature);
+    all_columns.push(info1);
+    all_columns.push(info2);
+    all_columns.push(info3);
+    all_columns.push(info4);
+    all_columns.push(info5);
+    all_columns.push(info6);
+    all_columns.push(info7);
+    all_columns.push(info8);
+    all_columns.push(info9);
+    all_columns.push(info10);
+    all_columns.push(height);
+    all_columns.push(pins);
+    all_columns.push(mttf);
+    all_columns.push(help_url);
+    all_columns.push(datasheet_url);
+    all_columns.push(library_ref);
+    all_columns.push(library_path);
+    all_columns.push(footprint_ref1);
+    all_columns.push(footprint_path1);
+    all_columns.push(footprint_ref2);
+    all_columns.push(footprint_path2);
+    all_columns.push(footprint_ref3);
+    all_columns.push(footprint_path3);
+    all_columns.push(footprint_ref4);
+    all_columns.push(footprint_path4);
+    all_columns.push(footprint_ref5);
+    all_columns.push(footprint_path5);
+    all_columns.push(model);
+    all_columns.push(model_ref);
+    all_columns.push(model_path);
+
+    all_columns
+}
+
+pub fn insert_data(connection: &Connection, part_type: PartType, parts: Vec<Part>) -> Result<(), Error> {
+    
+
+    println!("  Updating table in database: {}", part_type_to_str(&part_type));
+
+    // let env = Environment::new()?;
+
+    // let connection_string = "\
+    //     Driver={ODBC Driver 17 for SQL Server};\
+    //     ConnSettings=SET CLIENT_ENCODING TO 'UTF8';\
+    //     Server=SQLDBSRV11\\INST2;\
+    //     Database=ECAD_PARTS_dev;\
+    //     UID=ecad_user;\
+    //     PWD=E34Corona;\
+    // ";
+    // let connection = env.connect_with_connection_string(connection_string, ConnectionOptions::default())?;
+
+    // Truncate whole table; Out with the old, in with the new !
+    let mut query = "TRUNCATE TABLE [dbo].[".to_string();
+    query.push_str(part_type_to_str(&part_type).as_str());
+    query.push_str("]");
+    connection.execute(query.as_str(), ())?;
+
+    let parts = parts_to_columnar_bulk(parts);
+
+    // Create a columnar buffer which fits the input parameters.
+    let buffer_description: [BufferDesc; 53] = [BufferDesc::Text { max_str_len: 255 }; 53];
+    let capacity = parts[0].len();
+
+    // Allocate memory for the array column parameters and bind it to the statement.
+    let query_string = create_insert_string(&part_type);
+
+    let prepared = connection.prepare(query_string.borrow())?;
+    let mut prebound = prepared.into_column_inserter(capacity, buffer_description)?;
+    // Length of this batch
+    prebound.set_num_rows(capacity);
+
+    // Fill the buffer with values column by column
+    for (index, column) in parts.iter().enumerate() {
+
+        let mut cell = prebound
+            .column_mut(index)
+            .as_text_view()
+            .expect("We know the name column to hold text.");
+
+        for (index2, entry) in column.iter().enumerate() {
+            cell.set_cell(index2, Some(entry.as_bytes()));
+        }
+    }
+
+    // buffer is filled: Send content to Database
+    prebound.execute()?;
+
+    Ok(())
+}
+
+
+
+
+
+
+
+struct Birthday {
+    name: String,
+    date: String,
+    gift: String,
+}
+
+fn birthday_create_entries() -> Vec<Birthday> {
+    let mut birthdays: Vec<Birthday> = Vec::new();
+
+    let simon = Birthday {
+        name: String::from("Simon"),
+        date: String::from("1988"),
+        gift: String::from("A book"),
+    };
+    birthdays.push(simon);
+
+    let max = Birthday {
+        name: String::from("Max"),
+        date: String::from("1986"),
+        gift: String::from("Spade"),
+    };
+    birthdays.push(max);
+
+    let peter = Birthday {
+        name: String::from("Peter"),
+        date: String::from("1987"),
+        gift: String::from("Moutain Bike"),
+    };
+    birthdays.push(peter);
+
+    let helmut = Birthday {
+        name: String::from("Helmut"),
+        date: String::from("1970"),
+        gift: String::from("Cell Phone"),
+    };
+    birthdays.push(helmut);
+
+    birthdays
+
+}
+
+pub fn birthday_insert_data() -> Result<(), Error> {
+
+    let birthdays = birthday_create_entries();
+    let parts = birthdays_to_columnar_bulk(birthdays);
+
     let env = Environment::new()?;
 
     let connection_string = "
@@ -109,107 +383,68 @@ pub fn insert_data(part_type: PartType, parts: Vec<Part>) -> Result<(), Error> {
         UID=ecad_user;\
         PWD=E34Corona;\
     ";
-    let connection = env.connect_with_connection_string(connection_string, ConnectionOptions::default())?;
-    let prepared = connection.prepare(create_insert_string(&part_type).as_str())?;
+    let conn = env.connect_with_connection_string(connection_string, ConnectionOptions::default())?;
 
-    // Truncate whole table; Out with the old, in with the new !
-    let mut query = "TRUNCATE TABLE dbo.".to_string();
-    query.push_str(part_type_to_str(&part_type).as_str());
-    connection.execute(query.as_str(), ())?;
+    conn.execute("TRUNCATE TABLE dbo.Birthdays", ())?;
+    conn.execute("TRUNCATE TABLE dbo.Birthdays2", ())?;
+    conn.execute("TRUNCATE TABLE dbo.Capacitor", ())?;
+
 
     // Create a columnar buffer which fits the input parameters.
-    let buffer_description: [BufferDesc; 32] = [BufferDesc::Text { max_str_len: 255 }; 32];
-
-    let capacity = parts.len();
+    let buffer_description: [BufferDesc; 3] = [BufferDesc::Text { max_str_len: 255 }; 3];
+    let capacity = parts[0].len();
 
     // Allocate memory for the array column parameters and bind it to the statement.
+    //let prepared = conn.prepare("INSERT INTO Birthdays (name, year, gift) VALUES (?, ?, ?)")?;
+    let prepared = conn.prepare("INSERT INTO [dbo].[Capacitor] ([CDB No]) VALUES (?)")?;
     let mut prebound = prepared.into_column_inserter(capacity, buffer_description)?;
     // Length of this batch
     prebound.set_num_rows(capacity);
 
-    // Fill the buffer with values column by column
-    prebound = fill_buffer_with_values(prebound,&parts);
 
-    // buffer is filled: Send content to Database
+    //Fill the buffer with values column by column
+    for (index, column) in parts.iter().enumerate() {
+        
+        let mut cell = prebound
+            .column_mut(index)
+            .as_text_view()
+            .expect("We know the name column to hold text.");
+
+        for (index2, entry) in column.iter().enumerate() {
+            cell.set_cell(index2, Some(entry.as_bytes()));
+        }
+    }
+
+    // let mut cell = prebound
+    //     .column_mut(0)
+    //     .as_text_view()
+    //     .expect("We know the name column to hold text.");
+
+    // println!("Cell Value {}", parts[0][0]);
+    // cell.set_cell(0, Some(parts[0][0].as_bytes()));
+
     prebound.execute()?;
-
     Ok(())
 }
 
-fn fill_buffer_with_values<'a>(mut prebound: odbc_api::ColumnarBulkInserter<odbc_api::handles::StatementImpl<'a>, odbc_api::buffers::AnyBuffer>, parts: &'a Vec<Part>) 
--> odbc_api::ColumnarBulkInserter<odbc_api::handles::StatementImpl<'a>, odbc_api::buffers::AnyBuffer> {
+fn birthdays_to_columnar_bulk(birthdays: Vec<Birthday>) -> Vec<Vec<String>>{
+
     
-    // outer loop -> iterate through the columns
-    for column in (0..32) {
-        
-        let mut col = prebound
-        .column_mut(column)
-        .as_text_view()
-        .expect("We know the name column to hold text.");
+    let mut all_columns: Vec<Vec<String>> = Vec::new();
+    
+    let mut names: Vec<String> = Vec::new();
+    let mut dates: Vec<String> = Vec::new();
+    let mut gifts: Vec<String> = Vec::new();
 
-        //inner loop -> iterate through the rows
-        for (index, part) in parts.iter().enumerate() {
-            col.set_cell(index, Some(part.cdb_number.as_bytes()));
-            println!("Row Index: {}", index);
-        }
-        println!("Column Index: {}", column);
+    for (index, birthday) in birthdays.iter().enumerate() {
+        names.push(birthday.name.clone());
+        dates.push(birthday.date.clone());
+        gifts.push(birthday.gift.clone());
     }
-    prebound
+    
+    all_columns.push(names);
+    all_columns.push(dates);
+    all_columns.push(gifts);
+
+    all_columns
 }
-
-// fn insert_birth_years(conn: &Connection, names: &[&str], years: &[i16]) -> Result<(), Error> {
-
-//     // All columns must have equal length.
-//     assert_eq!(names.len(), years.len());
-
-//     let prepared = conn.prepare("INSERT INTO Birthdays (name, year) VALUES (?, ?)")?;
-
-//     // Create a columnar buffer which fits the input parameters.
-//     let buffer_description = [
-//         BufferDesc::Text { max_str_len: 255 },
-//         BufferDesc::I16 { nullable: false },
-//     ];
-
-//     // The capacity must be able to hold at least the largest batch. We do everything in one go, so
-//     // we set it to the length of the input parameters.
-//     let capacity = names.len();
-//     // Allocate memory for the array column parameters and bind it to the statement.
-//     let mut prebound = prepared.into_column_inserter(capacity, buffer_description)?;
-//     // Length of this batch
-//     prebound.set_num_rows(capacity);
-
-
-//     // Fill the buffer with values column by column
-//     prebound = fill_buffer_with_values(prebound,&parts);
-
-//     prebound.execute()?;
-//     Ok(())
-// }
-
-
-// fn main2() -> Result<(), Error> {
-
-//    let env = Environment::new()?;
-//     let connection_string = "
-//         Driver={ODBC Driver 17 for SQL Server};\
-//         ConnSettings=SET CLIENT_ENCODING TO 'UTF8';\
-//         Server=SQLDBSRV11\\INST2;\
-//         Database=ECAD_PARTS_dev;\
-//         UID=ecad_user;\
-//         PWD=E34Corona;\
-//     ";
-
-//     let connection = env.connect_with_connection_string(connection_string, ConnectionOptions::default())?;
-
-//     connection.execute("TRUNCATE TABLE dbo.Birthdays", ())?;
-
-//     let names = ["ä", "Peter", "Max"];
-//     let years = [1988, 1987, 1986];
-//     insert_birth_years(&connection, &names, &years).unwrap();
-
-//     let value = 10;
-
-//     //connection.execute("INSERT INTO [dbo].[Birthdays] ([CDB No]) VALUES (?)", ())?;
-
-//     Ok(())
-// }
