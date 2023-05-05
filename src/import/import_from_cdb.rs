@@ -99,11 +99,13 @@ pub struct PartFromCDB {
     
 }
 
-pub fn read_cdb_export(filename: &str) -> Result<Vec<PartFromCDB>, Error> {
+pub fn import_cdb_export(filename: &str) -> Result<Vec<PartFromCDB>, Error> {
     let mut parts: Vec<PartFromCDB> = Vec::new();
 
     // open Excel file
-    let path = format!("{}\\CDB_Export\\{}.xlsx", env!("CARGO_MANIFEST_DIR"), &filename);
+    // let mut output_file = File::create("SAP_Export\\Extract_SAP4Zuken_fixed.csv")?;
+    
+    let path = format!("CDB_Export\\{}.xlsx", &filename);
     println!("  Reading in CDB-Excel File: {}", path);
     let mut workbook: Xlsx<_> = open_workbook(path)?;
 

@@ -1,7 +1,7 @@
 use std::borrow::Borrow;
 
 use odbc_api::{Error, buffers::BufferDesc, Environment, ConnectionOptions, Connection};
-use crate::{parts::Part, PartType};
+use crate::{parts::{Part}, PartType};
 
 
 

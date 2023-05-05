@@ -91,7 +91,7 @@ pub fn read_sap_export() -> Result<Vec<PartFromSAP>, std::io::Error> {
             Ok(row) => {
                 parts.push(row);
             }
-            Err(row) => println!("{}: {:?}", index + 2, row),
+            Err(row) => println!("Parsing CSV File {}: {:?}", index + 2, row),
         }
     }
     Ok(parts)

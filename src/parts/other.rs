@@ -1,4 +1,4 @@
-use crate::import::{cdb_import::PartFromCDB, sap_import::PartFromSAP};
+use crate::import::{import_from_cdb::PartFromCDB, import_from_sap::PartFromSAP};
 use super::Part;
 
 impl Part {

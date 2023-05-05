@@ -1,5 +1,6 @@
-use crate::import::cdb_import::PartFromCDB;
-use crate::import::sap_import::PartFromSAP;
+use crate::{Parts, PartType};
+use crate::import::import_from_cdb::PartFromCDB;
+use crate::import::import_from_sap::PartFromSAP;
 
 pub mod capacitor;
 pub mod connector;
@@ -12,18 +13,7 @@ pub mod other;
 pub mod resistor;
 pub mod transistor;
 
-pub enum PartType {
-    Capacitor,
-    Connector,
-    Diode,
-    Ic,
-    Inductor,
-    Mechanic,
-    Opto,
-    Other,
-    Resistor,
-    Transistor
-}
+
 
 #[derive(Clone, Debug, Default)]
 pub struct Part {
@@ -83,7 +73,6 @@ pub struct Part {
 }
 
 impl Part {
-
     
     fn copy_content(&mut self, cdb_part: &PartFromCDB, sap_part: &PartFromSAP) -> &mut Self{
         // 1-to-1 copy of the content from cdb and SAP to the new struct to be send to the database
@@ -252,9 +241,7 @@ impl Part {
         self
     }
 
-
 }
-
 
 pub fn parts_polish(part_type: PartType, cdb_parts: Vec<PartFromCDB>, sap_parts: &Vec<PartFromSAP>) ->  Vec<Part> {
 
@@ -304,3 +291,4 @@ pub fn parts_polish(part_type: PartType, cdb_parts: Vec<PartFromCDB>, sap_parts:
     }
     parts
 }
+

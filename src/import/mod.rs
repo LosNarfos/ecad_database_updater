@@ -1,2 +1,2 @@
-pub mod cdb_import;
-pub mod sap_import;
+pub mod import_from_cdb;
+pub mod import_from_sap;
