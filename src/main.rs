@@ -43,21 +43,38 @@ pub enum PartType {
     Transistor
 }
 
+impl PartType {
+    fn file_name_as_string(&self) -> &str {
+        match self {
+            PartType::Capacitor => "Capacitor",
+            PartType::Connector => "Connector",
+            PartType::Diode => "Diode",
+            PartType::Ic =>"Ic",
+            PartType::Inductor => "Inductor",
+            PartType::Mechanic => "Mechanic",
+            PartType::Opto => "Opto",
+            PartType::Other => "Other",
+            PartType::Resistor => "Resistor",
+            PartType::Transistor =>"Transistor",
+        }
+    }
+}
+
 fn run() -> Result<(), Box<dyn Error>> {
     
     println!("--------------------------- ECAD Database Updater ---------------------------");    
     
     // get content from CDB export
-    let cdb_capacitor = import_cdb_export("Capacitor")?;
-    let cdb_connector = import_cdb_export("Connector")?;
-    let cdb_diode = import_cdb_export("Diode")?;
-    let cdb_ic = import_cdb_export("IC")?;
-    let cdb_inductor = import_cdb_export("Inductor")?;
-    let cdb_mechanic = import_cdb_export("Mechanic")?;
-    let cdb_opto = import_cdb_export("Opto")?;
-    let cdb_other = import_cdb_export("Other")?;
-    let cdb_resistor = import_cdb_export( "Resistor")?;
-    let cdb_transistor = import_cdb_export("Transistor")?;
+    let cdb_capacitor = import_cdb_export(PartType::Capacitor)?;
+    let cdb_connector = import_cdb_export(PartType::Connector)?;
+    let cdb_diode = import_cdb_export(PartType::Diode)?;
+    let cdb_ic = import_cdb_export(PartType::Ic)?;
+    let cdb_inductor = import_cdb_export(PartType::Inductor)?;
+    let cdb_mechanic = import_cdb_export(PartType::Mechanic)?;
+    let cdb_opto = import_cdb_export(PartType::Opto)?;
+    let cdb_other = import_cdb_export(PartType::Other)?;
+    let cdb_resistor = import_cdb_export( PartType::Resistor)?;
+    let cdb_transistor = import_cdb_export(PartType::Transistor)?;
     
     println!("-----------------------------------------------------------");
 
@@ -67,11 +84,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     println!("-----------------------------------------------------------");
 
     // Modify fields
-
-    // rewrite
     let mut parts = Parts{.. Default::default()};
-
-    //let capacitor = parts_polish(PartType::Capacitor, cdb_capacitor, &sap_parts);
     parts.capacitor = parts_polish(PartType::Capacitor, cdb_capacitor, &sap_parts);
     parts.connector = parts_polish(PartType::Connector, cdb_connector, &sap_parts);
     parts.diode = parts_polish(PartType::Diode, cdb_diode, &sap_parts);

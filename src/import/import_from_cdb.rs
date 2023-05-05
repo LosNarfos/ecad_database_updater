@@ -1,6 +1,8 @@
 use serde::Deserialize;
 use calamine::{open_workbook, Error, Xlsx, Reader, RangeDeserializerBuilder};
 
+use crate::PartType;
+
 
 #[derive(Clone, Deserialize, Debug)]
 pub struct PartFromCDB {
@@ -99,13 +101,32 @@ pub struct PartFromCDB {
     
 }
 
-pub fn import_cdb_export(filename: &str) -> Result<Vec<PartFromCDB>, Error> {
+fn part_type_to_str(part_type: &PartType) -> String {
+
+    let part_type_as_string = match part_type {
+        PartType::Capacitor => "Capacitor",
+        PartType::Connector => "Connector",
+        PartType::Diode => "Diode",
+        PartType::Ic =>"Ic",
+        PartType::Inductor => "Inductor",
+        PartType::Mechanic => "Mechanic",
+        PartType::Opto => "Opto",
+        PartType::Other => "Other",
+        PartType::Resistor => "Resistor",
+        PartType::Transistor =>"Transistor",
+    };
+    part_type_as_string.to_string()
+}
+
+
+pub fn import_cdb_export(part_type: PartType) -> Result<Vec<PartFromCDB>, Error> {
     let mut parts: Vec<PartFromCDB> = Vec::new();
 
     // open Excel file
     // let mut output_file = File::create("SAP_Export\\Extract_SAP4Zuken_fixed.csv")?;
-    
-    let path = format!("CDB_Export\\{}.xlsx", &filename);
+    //println!("  Updating table in database: {}", part_type_to_str(&part_type));
+
+    let path = format!("CDB_Export\\{}.xlsx", part_type.file_name_as_string());
     println!("  Reading in CDB-Excel File: {}", path);
     let mut workbook: Xlsx<_> = open_workbook(path)?;
 

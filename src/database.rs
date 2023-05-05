@@ -3,30 +3,33 @@ use std::borrow::Borrow;
 use odbc_api::{Error, buffers::BufferDesc, Environment, ConnectionOptions, Connection};
 use crate::{parts::Part, PartType};
 
+struct database<'a>{
+    connection: Connection<'a>,
+    connection_string: &'a str,
+}
+impl database<'_> {
+    fn new(&mut self) {
+        self.connection_string = "\
+            Driver={ODBC Driver 17 for SQL Server};\
+            ConnSettings=SET CLIENT_ENCODING TO 'UTF8';\
+            Server=SQLDBSRV11\\INST2;\
+            Database=ECAD_PARTS_dev;\
+            UID=ecad_user;\
+            PWD=E34Corona;\
+            ";
+        
+        let env = Environment::new().expect("Could not connect to Database");
 
-
-fn part_type_to_str(part_type: &PartType) -> String {
-
-    let part_type_as_string = match part_type {
-        PartType::Capacitor => "Capacitor",
-        PartType::Connector => "Connector",
-        PartType::Diode => "Diode",
-        PartType::Ic =>"Ic",
-        PartType::Inductor => "Inductor",
-        PartType::Mechanic => "Mechanic",
-        PartType::Opto => "Opto",
-        PartType::Other => "Other",
-        PartType::Resistor => "Resistor",
-        PartType::Transistor =>"Transistor",
-    };
-    part_type_as_string.to_string()
+        //let test = env.connect_with_connection_string(self.connection_string, ConnectionOptions::default()).expect("Could not connect to database");
+        //self.connection = test;
+    }
 }
 
 fn create_insert_string(part_type: &PartType) -> String {
 
     let mut insert_string = "INSERT INTO ".to_string();
     insert_string.push_str("[dbo].[");
-    insert_string.push_str(part_type_to_str(part_type).as_str());
+    insert_string.push_str(part_type.file_name_as_string());
     insert_string.push_str("] (");
     
     insert_string.push_str("[CDB No], ");
@@ -268,7 +271,7 @@ fn parts_to_columnar_bulk(parts: Vec<Part>) -> Vec<Vec<String>> {
 pub fn insert_data(connection: &Connection, part_type: PartType, parts: Vec<Part>) -> Result<(), Error> {
     
 
-    println!("  Updating table in database: {}", part_type_to_str(&part_type));
+    println!("  Updating table in database: {}", part_type.file_name_as_string());
 
     // let env = Environment::new()?;
 
@@ -284,7 +287,7 @@ pub fn insert_data(connection: &Connection, part_type: PartType, parts: Vec<Part
 
     // Truncate whole table; Out with the old, in with the new !
     let mut query = "TRUNCATE TABLE [dbo].[".to_string();
-    query.push_str(part_type_to_str(&part_type).as_str());
+    query.push_str(part_type.file_name_as_string().clone());
     query.push_str("]");
     connection.execute(query.as_str(), ())?;
 
