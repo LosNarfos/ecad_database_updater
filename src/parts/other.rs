@@ -9,5 +9,12 @@ impl Part {
             // SAP field (instead of the old placeholder)
             self.sap_number = "=PRJ_PCB_MatNoSAP".to_string();
         }
+
+        self.other_check_category(cdb_part, sap_part);
+    }
+
+    fn other_check_category(&mut self, cdb_part: &PartFromCDB, sap_part: &PartFromSAP) -> &mut Self{
+        self.category = "MISC".to_string();
+        self
     }
 }

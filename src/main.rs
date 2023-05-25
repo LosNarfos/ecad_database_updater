@@ -61,8 +61,10 @@ impl PartType {
 
 fn run() -> Result<(), Box<dyn Error>> {
     
-    println!("--------------------------- ECAD Database Updater ---------------------------");
+    // println!("--------------------------- ECAD Database Updater ---------------------------");
    
+    export::logfile::delete_logfiles();
+
     println!("Reading in CDB-Excel Files..");
     let cdb_capacitor = import::cdb::import(PartType::Capacitor)?;
     let cdb_connector = import::cdb::import(PartType::Connector)?;
@@ -98,20 +100,19 @@ fn run() -> Result<(), Box<dyn Error>> {
     let env = Environment::new()?;
     let connection = export::database::connect(&env)?;
 
-    export::database::insert(&connection, PartType::Capacitor, parts.capacitor)?;
-    export::database::insert(&connection, PartType::Connector, parts.connector)?;
-    export::database::insert(&connection, PartType::Diode, parts.diode)?;
-    export::database::insert(&connection, PartType::Ic, parts.ic)?;
-    export::database::insert(&connection, PartType::Inductor, parts.inductor)?;
-    export::database::insert(&connection, PartType::Mechanic, parts.mechanic)?;
-    export::database::insert(&connection, PartType::Opto, parts.opto)?;
-    export::database::insert(&connection, PartType::Other, parts.other)?;
-    export::database::insert(&connection, PartType::Resistor, parts.resistor)?;
-    export::database::insert(&connection, PartType::Transistor, parts.transistor)?;
+    // export::database::insert(&connection, PartType::Capacitor, parts.capacitor)?;
+    // export::database::insert(&connection, PartType::Connector, parts.connector)?;
+    // export::database::insert(&connection, PartType::Diode, parts.diode)?;
+    // export::database::insert(&connection, PartType::Ic, parts.ic)?;
+    // export::database::insert(&connection, PartType::Inductor, parts.inductor)?;
+    // export::database::insert(&connection, PartType::Mechanic, parts.mechanic)?;
+    // export::database::insert(&connection, PartType::Opto, parts.opto)?;
+    // export::database::insert(&connection, PartType::Other, parts.other)?;
+    // export::database::insert(&connection, PartType::Resistor, parts.resistor)?;
+    // export::database::insert(&connection, PartType::Transistor, parts.transistor)?;
 
     println!("");
     println!("--------------------------- Finished ---------------------------");
-
     Ok(())
 }
 

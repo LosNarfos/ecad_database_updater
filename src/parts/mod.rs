@@ -142,6 +142,16 @@ impl Part {
             "Auslaufbauteil-keine Neudesign"    => self.life_cycle = "BLACK".to_string(),
             _                                   => self.life_cycle = "".to_string()
         }
+
+        // log if life cycle is empty while SAP state is present (-> Part exists in SAP but has no life cycle entry)
+        if sap_part.standard_mat.is_empty() && !sap_part.mat_status.is_empty() {
+            crate::export::logfile::missing_life_cycle(
+                sap_part.default_stock_id.as_str(),
+                sap_part.mat_status.as_str(),
+                cdb_part.description.as_str()
+            )
+        }
+
         self
     }
 
@@ -297,6 +307,8 @@ pub fn polish(part_type: PartType, cdb_parts: Vec<PartFromCDB>, sap_parts: &Vec<
             PartType::Resistor => part.polish_resistor(cdb_part, &sap_part),
             PartType::Transistor => part.polish_transistor(cdb_part, &sap_part),
         }
+        crate::export::new_part_name_description::add(&part);
+
         parts.push(part);
     }
     parts
