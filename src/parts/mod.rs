@@ -1,6 +1,6 @@
-use crate::{Parts, PartType};
-use crate::import::import_from_cdb::PartFromCDB;
-use crate::import::import_from_sap::PartFromSAP;
+use crate::PartType;
+use crate::import::cdb::PartFromCDB;
+use crate::import::sap::PartFromSAP;
 
 pub mod capacitor;
 pub mod connector;
@@ -154,6 +154,16 @@ impl Part {
         self
     }
 
+    fn check_manufacturer(&mut self, cdb_part: &PartFromCDB, sap_part: &PartFromSAP) -> &mut Self{
+        self.manufacturer = sap_part.manufacturer.clone();
+        self
+    }
+
+    fn check_manufacturer_no(&mut self, cdb_part: &PartFromCDB, sap_part: &PartFromSAP) -> &mut Self{
+        self.manufacturer_number = sap_part.part_no_manufacturer.clone();
+        self
+    }
+
     fn check_stock_2100(&mut self, cdb_part: &PartFromCDB, sap_part: &PartFromSAP) -> &mut Self{
         self.stock_2100 = sap_part.stock_2100.clone();
         self
@@ -243,11 +253,11 @@ impl Part {
 
 }
 
-pub fn parts_polish(part_type: PartType, cdb_parts: Vec<PartFromCDB>, sap_parts: &Vec<PartFromSAP>) ->  Vec<Part> {
+pub fn polish(part_type: PartType, cdb_parts: Vec<PartFromCDB>, sap_parts: &Vec<PartFromSAP>) ->  Vec<Part> {
 
     let mut parts: Vec<Part> = Vec::new();
 
-    for (index, cdb_part) in cdb_parts.iter().enumerate() {
+    for cdb_part in cdb_parts.iter() {
         
         let mut part = Part { .. Default::default() };
 

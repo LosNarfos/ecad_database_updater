@@ -3,26 +3,39 @@ use std::borrow::Borrow;
 use odbc_api::{Error, buffers::BufferDesc, Environment, ConnectionOptions, Connection};
 use crate::{parts::Part, PartType};
 
-struct database<'a>{
-    connection: Connection<'a>,
-    connection_string: &'a str,
-}
-impl database<'_> {
-    fn new(&mut self) {
-        self.connection_string = "\
-            Driver={ODBC Driver 17 for SQL Server};\
-            ConnSettings=SET CLIENT_ENCODING TO 'UTF8';\
-            Server=SQLDBSRV11\\INST2;\
-            Database=ECAD_PARTS_dev;\
-            UID=ecad_user;\
-            PWD=E34Corona;\
-            ";
-        
-        let env = Environment::new().expect("Could not connect to Database");
+use encoding_rs::WINDOWS_1252;
 
-        //let test = env.connect_with_connection_string(self.connection_string, ConnectionOptions::default()).expect("Could not connect to database");
-        //self.connection = test;
+pub fn connect(env: &Environment) -> Result<Connection, Error> {
+    let connection_string = "\
+        Driver={ODBC Driver 17 for SQL Server};\
+        ConnSettings=SET CLIENT_ENCODING TO 'UTF8';\
+        Server=SQLDBSRV11\\INST2;\
+        Database=ECAD_PARTS_dev;\
+        UID=ecad_user;\
+        PWD=E34Corona;\
+    ";
+    let connection = env.connect_with_connection_string(connection_string, ConnectionOptions::default())?;
+
+    Ok(connection)
+}
+
+fn columnar_bulk_as_win1252(content: Vec<Vec<String>>) -> Vec<Vec<Vec<u8>>> {
+    
+    let mut content_as_win1252: Vec<Vec<Vec<u8>>> = Vec::new();
+
+    for column in content.iter() {
+
+        let mut entries_as_bytes: Vec<Vec<u8>> = Vec::new();
+
+        for entry in column.iter() {
+            let (cow, ..) = WINDOWS_1252.encode(entry);
+            let bytes = cow.into_owned();
+            entries_as_bytes.push(bytes);
+        }
+
+        content_as_win1252.push(entries_as_bytes);
     }
+    content_as_win1252
 }
 
 fn create_insert_string(part_type: &PartType) -> String {
@@ -268,22 +281,9 @@ fn parts_to_columnar_bulk(parts: Vec<Part>) -> Vec<Vec<String>> {
     all_columns
 }
 
-pub fn insert_data(connection: &Connection, part_type: PartType, parts: Vec<Part>) -> Result<(), Error> {
+pub fn insert(connection: &Connection, part_type: PartType, parts: Vec<Part>) -> Result<(), Error> {
     
-
-    println!("  Updating table in database: {}", part_type.file_name_as_string());
-
-    // let env = Environment::new()?;
-
-    // let connection_string = "\
-    //     Driver={ODBC Driver 17 for SQL Server};\
-    //     ConnSettings=SET CLIENT_ENCODING TO 'UTF8';\
-    //     Server=SQLDBSRV11\\INST2;\
-    //     Database=ECAD_PARTS_dev;\
-    //     UID=ecad_user;\
-    //     PWD=E34Corona;\
-    // ";
-    // let connection = env.connect_with_connection_string(connection_string, ConnectionOptions::default())?;
+    println!("  {}", part_type.file_name_as_string());
 
     // Truncate whole table; Out with the old, in with the new !
     let mut query = "TRUNCATE TABLE [dbo].[".to_string();
@@ -292,6 +292,7 @@ pub fn insert_data(connection: &Connection, part_type: PartType, parts: Vec<Part
     connection.execute(query.as_str(), ())?;
 
     let parts = parts_to_columnar_bulk(parts);
+    let parts = columnar_bulk_as_win1252(parts);
 
     // Create a columnar buffer which fits the input parameters.
     let buffer_description: [BufferDesc; 53] = [BufferDesc::Text { max_str_len: 255 }; 53];
@@ -314,7 +315,8 @@ pub fn insert_data(connection: &Connection, part_type: PartType, parts: Vec<Part
             .expect("We know the name column to hold text.");
 
         for (index2, entry) in column.iter().enumerate() {
-            cell.set_cell(index2, Some(entry.as_bytes()));
+            //cell.set_cell(index2, Some(entry.as_bytes()));
+            cell.set_cell(index2, Some(entry));
         }
     }
 
