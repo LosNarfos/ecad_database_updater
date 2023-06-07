@@ -42,7 +42,7 @@ fn create_insert_string(part_type: &PartType) -> String {
 
     let mut insert_string = "INSERT INTO ".to_string();
     insert_string.push_str("[dbo].[");
-    insert_string.push_str(part_type.file_name_as_string());
+    insert_string.push_str(part_type.to_string().as_str());
     insert_string.push_str("] (");
     
     insert_string.push_str("[CDB No], ");
@@ -283,11 +283,11 @@ fn parts_to_columnar_bulk(parts: Vec<Part>) -> Vec<Vec<String>> {
 
 pub fn insert(connection: &Connection, part_type: PartType, parts: Vec<Part>) -> Result<(), Error> {
     
-    println!("  {}", part_type.file_name_as_string());
+    println!("  {}", part_type);
 
     // Truncate whole table; Out with the old, in with the new !
     let mut query = "TRUNCATE TABLE [dbo].[".to_string();
-    query.push_str(part_type.file_name_as_string().clone());
+    query.push_str(part_type.to_string().as_str());
     query.push_str("]");
     connection.execute(query.as_str(), ())?;
 

@@ -170,7 +170,7 @@ impl Part {
     }
 
     fn check_manufacturer_no(&mut self, cdb_part: &PartFromCDB, sap_part: &PartFromSAP) -> &mut Self{
-        self.manufacturer_number = sap_part.part_no_manufacturer.clone();
+        self.manufacturer_number = sap_part.sap_mat_no_htn.clone();
         self
     }
 
@@ -284,6 +284,8 @@ pub fn polish(part_type: PartType, cdb_parts: Vec<PartFromCDB>, sap_parts: &Vec<
         part
             .check_life_cycle(cdb_part, &sap_part)
             .check_second_source(cdb_part, &sap_part)
+            .check_manufacturer(cdb_part, &sap_part)
+            .check_manufacturer_no(cdb_part, &sap_part)
             .check_stock_2100(cdb_part, &sap_part)
             .check_stock_2720(cdb_part, &sap_part)
             .check_price(cdb_part, &sap_part)

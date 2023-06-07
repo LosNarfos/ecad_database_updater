@@ -3,7 +3,6 @@ use calamine::{open_workbook, Error, Xlsx, Reader, RangeDeserializerBuilder};
 
 use crate::PartType;
 
-
 #[derive(Clone, Deserialize, Debug)]
 pub struct PartFromCDB {
     #[serde(default, rename = "CDB No")]
@@ -119,14 +118,16 @@ fn part_type_to_str(part_type: &PartType) -> String {
 }
 
 
-pub fn import(part_type: PartType) -> Result<Vec<PartFromCDB>, Error> {
+pub fn import(part_class: PartType) -> Result<Vec<PartFromCDB>, Error> {
     let mut parts: Vec<PartFromCDB> = Vec::new();
 
     // open Excel file
     // let mut output_file = File::create("SAP_Export\\Extract_SAP4Zuken_fixed.csv")?;
     //println!("  Updating table in database: {}", part_type_to_str(&part_type));
 
-    let path = format!("CDB_Export\\{}.xlsx", part_type.file_name_as_string());
+    //let path = format!("CDB_Export\\{}.xlsx", part_type.file_name_as_string());
+    let path = format!("CDB_Export\\{}.xlsx", part_class.to_string());
+
     println!("  {}", path);
     let mut workbook: Xlsx<_> = open_workbook(path)?;
 

@@ -77,7 +77,7 @@ fn clean_up_csv_file_from_sap() -> Result<(), std::io::Error> {
 
 }
 
-pub fn read_sap() -> Result<Vec<PartFromSAP>, std::io::Error> {  
+pub fn import() -> Result<Vec<PartFromSAP>, std::io::Error> {  
 
     // clean up buggy CSV file given by SAP
     clean_up_csv_file_from_sap()?;

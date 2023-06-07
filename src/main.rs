@@ -9,7 +9,7 @@ mod import;
 mod export;
 mod parts;
 
-use std::error::Error;
+use std::{error::Error, fmt};
 use odbc_api::Environment;
 use parts::Part;
 
@@ -41,23 +41,23 @@ pub enum PartType {
     Resistor,
     Transistor
 }
-
-impl PartType {
-    fn file_name_as_string(&self) -> &str {
+impl fmt::Display for PartType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            PartType::Capacitor => "Capacitor",
-            PartType::Connector => "Connector",
-            PartType::Diode => "Diode",
-            PartType::Ic =>"Ic",
-            PartType::Inductor => "Inductor",
-            PartType::Mechanic => "Mechanic",
-            PartType::Opto => "Opto",
-            PartType::Other => "Other",
-            PartType::Resistor => "Resistor",
-            PartType::Transistor =>"Transistor",
+            PartType::Capacitor => write!(f, "Capacitor"),
+            PartType::Connector => write!(f, "Connector"),
+            PartType::Diode => write!(f, "Diode"),
+            PartType::Ic => write!(f, "Ic"),
+            PartType::Inductor => write!(f, "Inductor"),
+            PartType::Mechanic => write!(f, "Mechanic"),
+            PartType::Opto => write!(f, "Opto"),
+            PartType::Other => write!(f, "Other"),
+            PartType::Resistor => write!(f, "Resistor"),
+            PartType::Transistor => write!(f, "Transistor"),
         }
     }
 }
+
 
 fn run() -> Result<(), Box<dyn Error>> {
     
@@ -78,7 +78,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let cdb_transistor = import::cdb::import(PartType::Transistor)?;
     
     println!("Reading in SAP-CSV File..");
-    let sap_parts = import::sap::read_sap()?;
+    let sap_parts = import::sap::import()?;
 
     println!("Polishing parameters..");
     let mut parts = Parts{.. Default::default()};

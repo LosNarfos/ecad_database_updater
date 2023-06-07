@@ -18,6 +18,12 @@ impl Part {
         self.category = "CAP".to_string();
         self
     }
+
+    fn capacitor_check_voltage(&mut self, cdb_part: &PartFromCDB, sap_part: &PartFromSAP) -> &mut Self{
+        
+        self.voltage = cdb_part.voltage.clone();
+        self
+    }
 }
 
 
