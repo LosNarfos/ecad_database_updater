@@ -1,6 +1,7 @@
 use csv::{QuoteStyle, WriterBuilder};
 use serde::Serialize;
 
+
 use crate::Parts;
 
 #[derive(Debug, Serialize, Default, Clone)]
@@ -38,8 +39,6 @@ pub struct Record {
 }
 
 pub fn export(parts: &Parts) {
-    
-
         
     let mut wtr = WriterBuilder::new()
         .quote_style(QuoteStyle::Always)
@@ -84,5 +83,8 @@ pub fn export(parts: &Parts) {
 
     // send everthing to file
     wtr.flush().unwrap();
+
+
+
 
 }

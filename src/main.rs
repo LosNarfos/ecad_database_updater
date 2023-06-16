@@ -12,6 +12,7 @@ mod parts;
 use std::{error::Error, fmt};
 use odbc_api::Environment;
 use parts::Part;
+use std::fs;
 
 
 // overall container for all components.
@@ -93,8 +94,18 @@ fn run() -> Result<(), Box<dyn Error>> {
     parts.transistor = parts::polish(PartType::Transistor, cdb_transistor, &sap_parts);
     parts.resistor = parts::polish(PartType::Resistor, cdb_resistor, &sap_parts);
 
+
+    let sap_zuken_exchange_dir = "\\\\baumernet.org\\ch01apps\\SAP\\100_ep1\\cad\\SAP-ZUKEN";
+
+    "\\\\baumernet.org\ch01apps\SAP\2100_ep1\cad\SAP-ZUKEN"
+   "\\\\baumernet.org\\ch01apps\\SAP\\100_ep1\\cad\\SAP-ZUKEN"
+
+    println!("Get SAP file from {}", sap_zuken_exchange_dir);
+    fs::copy(sap_zuken_exchange_dir.to_owned() + "Extract_SAP4Zuken.csv", "SAP_Export\\Extract_Zuken4SAP.csv").unwrap();
     println!("Create new SAP file..");
     export::sap::export(&parts);
+    println!("Copying new SAP file to {}\\Extract_Zuken4SAP.csv", sap_zuken_exchange_dir);
+    fs::copy("SAP_Export\\Extract_Zuken4SAP.csv", sap_zuken_exchange_dir.to_owned() + "\\Extract_Zuken4SAP.csv").unwrap();
 
     println!("Updating tables in database..");
     let env = Environment::new()?;
