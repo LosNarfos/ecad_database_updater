@@ -76,7 +76,6 @@ impl Part {
     
     fn copy_content(&mut self, cdb_part: &PartFromCDB, sap_part: &PartFromSAP) -> &mut Self{
         // 1-to-1 copy of the content from cdb and SAP to the new struct to be send to the database
-
         self.cdb_number     = cdb_part.cdb_number.clone();
         self.sap_number     = cdb_part.sap_number.clone();
         self.part_name      = cdb_part.part_name.clone();
@@ -151,7 +150,6 @@ impl Part {
                 cdb_part.description.as_str()
             )
         }
-
         self
     }
 

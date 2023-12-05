@@ -150,4 +150,3 @@ pub fn import(part_class: PartType) -> Result<Vec<PartFromCDB>, Error> {
     Ok(parts)
 
 }
- 

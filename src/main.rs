@@ -42,6 +42,7 @@ pub enum PartType {
     Resistor,
     Transistor
 }
+
 impl fmt::Display for PartType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -79,6 +80,16 @@ fn run() -> Result<(), Box<dyn Error>> {
     let cdb_transistor = import::cdb::import(PartType::Transistor)?;
     
     println!("Reading in SAP-CSV File..");
+    let sap_zuken_exchange_dir = "\\\\baumernet.org\\ch01apps\\SAP\\2100_ep1\\cad\\SAP-ZUKEN";
+    let sap_to_zuken_filename = "Extract_SAP4Zuken.csv";
+    let zuken_to_sap_filename = "Extract_Zuken4SAP.csv";
+
+    println!("  Copy SAP file from {}\\{}", sap_zuken_exchange_dir, sap_to_zuken_filename);
+    fs::copy(
+        sap_zuken_exchange_dir.to_owned() + "\\" + sap_to_zuken_filename,
+        "SAP_Export\\".to_owned() + sap_to_zuken_filename)
+        .unwrap();
+    println!("  Import SAP file..");
     let sap_parts = import::sap::import()?;
 
     println!("Polishing parameters..");
@@ -95,32 +106,29 @@ fn run() -> Result<(), Box<dyn Error>> {
     parts.resistor = parts::polish(PartType::Resistor, cdb_resistor, &sap_parts);
 
 
-    let sap_zuken_exchange_dir = "\\\\baumernet.org\\ch01apps\\SAP\\100_ep1\\cad\\SAP-ZUKEN";
-
-    "\\\\baumernet.org\ch01apps\SAP\2100_ep1\cad\SAP-ZUKEN"
-   "\\\\baumernet.org\\ch01apps\\SAP\\100_ep1\\cad\\SAP-ZUKEN"
-
-    println!("Get SAP file from {}", sap_zuken_exchange_dir);
-    fs::copy(sap_zuken_exchange_dir.to_owned() + "Extract_SAP4Zuken.csv", "SAP_Export\\Extract_Zuken4SAP.csv").unwrap();
-    println!("Create new SAP file..");
+    println!("Create new SAP-File");
     export::sap::export(&parts);
-    println!("Copying new SAP file to {}\\Extract_Zuken4SAP.csv", sap_zuken_exchange_dir);
-    fs::copy("SAP_Export\\Extract_Zuken4SAP.csv", sap_zuken_exchange_dir.to_owned() + "\\Extract_Zuken4SAP.csv").unwrap();
+
+    println!("  Copying file to {}\\{}", sap_zuken_exchange_dir, zuken_to_sap_filename);
+    fs::copy(
+        "SAP_Export\\".to_owned() + zuken_to_sap_filename,
+        sap_zuken_exchange_dir.to_owned() + "\\" + zuken_to_sap_filename)
+        .unwrap();
 
     println!("Updating tables in database..");
     let env = Environment::new()?;
     let connection = export::database::connect(&env)?;
 
-    // export::database::insert(&connection, PartType::Capacitor, parts.capacitor)?;
-    // export::database::insert(&connection, PartType::Connector, parts.connector)?;
-    // export::database::insert(&connection, PartType::Diode, parts.diode)?;
-    // export::database::insert(&connection, PartType::Ic, parts.ic)?;
-    // export::database::insert(&connection, PartType::Inductor, parts.inductor)?;
-    // export::database::insert(&connection, PartType::Mechanic, parts.mechanic)?;
-    // export::database::insert(&connection, PartType::Opto, parts.opto)?;
-    // export::database::insert(&connection, PartType::Other, parts.other)?;
-    // export::database::insert(&connection, PartType::Resistor, parts.resistor)?;
-    // export::database::insert(&connection, PartType::Transistor, parts.transistor)?;
+    export::database::insert(&connection, PartType::Capacitor, parts.capacitor)?;
+    export::database::insert(&connection, PartType::Connector, parts.connector)?;
+    export::database::insert(&connection, PartType::Diode, parts.diode)?;
+    export::database::insert(&connection, PartType::Ic, parts.ic)?;
+    export::database::insert(&connection, PartType::Inductor, parts.inductor)?;
+    export::database::insert(&connection, PartType::Mechanic, parts.mechanic)?;
+    export::database::insert(&connection, PartType::Opto, parts.opto)?;
+    export::database::insert(&connection, PartType::Other, parts.other)?;
+    export::database::insert(&connection, PartType::Resistor, parts.resistor)?;
+    export::database::insert(&connection, PartType::Transistor, parts.transistor)?;
 
     println!("");
     println!("--------------------------- Finished ---------------------------");
