@@ -1,104 +1,8 @@
-use serde::Deserialize;
+
 use calamine::{open_workbook, Error, Xlsx, Reader, RangeDeserializerBuilder};
 
-use crate::PartType;
+use crate::{parts::Part, PartType};
 
-#[derive(Clone, Deserialize, Debug)]
-pub struct PartFromCDB {
-    #[serde(default, rename = "CDB No")]
-    pub cdb_number: String,
-    #[serde(default, rename = "SAP No")]
-    pub sap_number: String,
-    #[serde(default, rename = "Part Name")]
-    pub part_name: String,
-    #[serde(default, rename = "Value")]
-    pub value: String,
-    #[serde(default, rename = "Package")]
-    pub package: String,
-    #[serde(default, rename = "Temperature")]
-    pub temperature: String,
-    #[serde(default, rename = "Height")]
-    pub height: String,
-    #[serde(default, rename = "Library Ref")]
-    pub library_ref: String,
-    #[serde(default, rename = "Library Path")]
-    pub library_path: String,
-    #[serde(default, rename = "Footprint Ref")]
-    pub footprint_ref1: String,
-    #[serde(default, rename = "Footprint Path")]
-    pub footprint_path1: String,
-    #[serde(default, rename = "Footprint Ref 2")]
-    pub footprint_ref2: String,
-    #[serde(default, rename = "Footprint Path 2")]
-    pub footprint_path2: String,
-    #[serde(default, rename = "Altium State")]
-    pub altium_state: String,
-    #[serde(default, rename = "Description")]
-    pub description: String,
-    #[serde(default, rename = "Voltage")]
-    pub voltage: String,
-    #[serde(default, rename = "Tolerance")]
-    pub tolerance: String,
-    #[serde(default, rename = "Current")]
-    pub current: String,
-    #[serde(default, rename = "Power")]
-    pub power: String,
-    #[serde(default, rename = "Info1")]
-    pub info1: String,
-    #[serde(default, rename = "Info2")]
-    pub info2: String,
-    #[serde(default, rename = "Info3")]
-    pub info3: String,
-    #[serde(default, rename = "Info4")]
-    pub info4: String,
-    #[serde(default, rename = "Info5")]
-    pub info5: String,
-    #[serde(default, rename = "Info6")]
-    pub info6: String,
-    #[serde(default, rename = "Info7")]
-    pub info7: String,
-    #[serde(default, rename = "Info8")]
-    pub info8: String,
-    #[serde(default, rename = "Info9")]
-    pub info9: String,
-    #[serde(default, rename = "Info10")]
-    pub info10: String,
-
-    // not yet implemented on CDB side
-    #[serde(default, rename = "CDB State")]
-    pub cdb_state: String,
-    #[serde(default, rename = "Manufacturer")]
-    pub manufacturer: String,
-    #[serde(default, rename = "Manufacturer_number")]
-    pub manufacturer_number: String,
-    #[serde(default, rename = "Category")]
-    pub category: String,
-    #[serde(default, rename = "Type")]
-    pub part_type: String,
-    #[serde(default, rename = "Help_URL")]
-    pub help_url: String,
-    #[serde(default, rename = "datasheet_URL")]
-    pub datasheet_url: String,
-    #[serde(default, rename = "Footprint Ref3")]
-    pub footprint_ref3: String,
-    #[serde(default, rename = "Footprint Ref4")]
-    pub footprint_ref4: String,
-    #[serde(default, rename = "Footprint Ref5")]
-    pub footprint_ref5: String,
-    #[serde(default, rename = "Footprint Path 3")]
-    pub footprint_path3: String,
-    #[serde(default, rename = "Footprint Path 4")]
-    pub footprint_path4: String,
-    #[serde(default, rename = "Footprint Path 5")]
-    pub footprint_path5: String,
-    #[serde(default, rename = "Model")]
-    pub model: String,
-    #[serde(default, rename = "Model Ref")]
-    pub model_ref: String,
-    #[serde(default, rename = "Model Path")]
-    pub model_path: String,
-    
-}
 
 fn part_type_to_str(part_type: &PartType) -> String {
 
@@ -118,8 +22,8 @@ fn part_type_to_str(part_type: &PartType) -> String {
 }
 
 
-pub fn import(part_class: PartType) -> Result<Vec<PartFromCDB>, Error> {
-    let mut parts: Vec<PartFromCDB> = Vec::new();
+pub fn import(part_class: PartType) -> Result<Vec<Part>, Error> {
+    let mut parts: Vec<Part> = Vec::new();
 
     // open Excel file
     // let mut output_file = File::create("SAP_Export\\Extract_SAP4Zuken_fixed.csv")?;

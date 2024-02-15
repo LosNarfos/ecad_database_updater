@@ -46,6 +46,7 @@ fn create_insert_string(part_type: &PartType) -> String {
     insert_string.push_str("] (");
     
     insert_string.push_str("[CDB No], ");
+    insert_string.push_str("[CDB Index], ");
     insert_string.push_str("[SAP No], ");
     insert_string.push_str("[Part Name], ");
     insert_string.push_str("[Description], ");
@@ -100,7 +101,7 @@ fn create_insert_string(part_type: &PartType) -> String {
     insert_string.push_str("[Model Path] ");
 
     insert_string.push_str(") VALUES (");
-    insert_string.push_str("?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?");
+    insert_string.push_str("?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?");
     insert_string.push_str(")");
 
     insert_string
@@ -109,12 +110,16 @@ fn create_insert_string(part_type: &PartType) -> String {
 
    }
 
-fn parts_to_columnar_bulk(parts: Vec<Part>) -> Vec<Vec<String>> {
+fn parts_to_columnar_bulk(parts: &mut Vec<Part>) -> Vec<Vec<String>> {
     
     let mut all_columns: Vec<Vec<String>> = Vec::new();
     
     let mut cdb_number: Vec<String> = Vec::new();
-    let mut sap_number: Vec<String> = Vec::new();
+    let mut cdb_index: Vec<String> = Vec::new();
+    let mut cdb_state: Vec<String> = Vec::new();
+    let mut sap_no: Vec<String> = Vec::new();
+    let mut sap_state: Vec<String> = Vec::new();
+    
     let mut part_name: Vec<String> = Vec::new();
     let mut description: Vec<String> = Vec::new();
     let mut altium_state: Vec<String> = Vec::new();
@@ -170,6 +175,7 @@ fn parts_to_columnar_bulk(parts: Vec<Part>) -> Vec<Vec<String>> {
 
     for (index, part) in parts.iter().enumerate() {
         cdb_number.push(part.cdb_number.clone());
+        cdb_index.push(part.cdb_index.clone());
         sap_number.push(part.sap_number.clone());
         part_name.push(part.part_name.clone());
         description.push(part.description.clone());
@@ -178,11 +184,11 @@ fn parts_to_columnar_bulk(parts: Vec<Part>) -> Vec<Vec<String>> {
         sap_state.push(part.sap_state.clone());
         life_cycle.push(part.life_cycle.clone());
         manufacturer.push(part.manufacturer.clone());
-        manufacturer_number.push(part.manufacturer_number.clone());
+        //manufacturer_number.push(part.manufacturer_number.clone());
         second_source.push(part.second_source.clone());
         stock_2100.push(part.stock_2100.clone());
         stock_2720.push(part.stock_2720.clone());
-        price.push(part.price.clone());
+        //price.push(part.price.clone());
         category.push(part.category.clone());
         part_type.push(part.part_type.clone());
         value.push(part.value.clone());
@@ -225,6 +231,7 @@ fn parts_to_columnar_bulk(parts: Vec<Part>) -> Vec<Vec<String>> {
     }
     
     all_columns.push(cdb_number);
+    all_columns.push(cdb_index);
     all_columns.push(sap_number);
     all_columns.push(part_name);
     all_columns.push(description);
@@ -281,10 +288,8 @@ fn parts_to_columnar_bulk(parts: Vec<Part>) -> Vec<Vec<String>> {
     all_columns
 }
 
-pub fn insert(connection: &Connection, part_type: PartType, parts: Vec<Part>) -> Result<(), Error> {
+pub fn insert(connection: &Connection, part_type: PartType, parts: &mut Vec<Part>) -> Result<(), Error> {
     
-    println!("  {}", part_type);
-
     // Truncate whole table; Out with the old, in with the new !
     let mut query = "TRUNCATE TABLE [dbo].[".to_string();
     query.push_str(part_type.to_string().as_str());
@@ -292,10 +297,11 @@ pub fn insert(connection: &Connection, part_type: PartType, parts: Vec<Part>) ->
     connection.execute(query.as_str(), ())?;
 
     let parts = parts_to_columnar_bulk(parts);
+
     let parts = columnar_bulk_as_win1252(parts);
 
     // Create a columnar buffer which fits the input parameters.
-    let buffer_description: [BufferDesc; 53] = [BufferDesc::Text { max_str_len: 255 }; 53];
+    let buffer_description: [BufferDesc; 54] = [BufferDesc::Text { max_str_len: 255 }; 54];
     let capacity = parts[0].len();
 
     // Allocate memory for the array column parameters and bind it to the statement.
@@ -313,7 +319,7 @@ pub fn insert(connection: &Connection, part_type: PartType, parts: Vec<Part>) ->
             .column_mut(index)
             .as_text_view()
             .expect("We know the name column to hold text.");
-
+            
         for (index2, entry) in column.iter().enumerate() {
             //cell.set_cell(index2, Some(entry.as_bytes()));
             cell.set_cell(index2, Some(entry));

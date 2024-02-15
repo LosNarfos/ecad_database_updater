@@ -1,35 +1,28 @@
-use crate::import::{cdb::PartFromCDB, sap::PartFromSAP};
+use crate::import::sap::PartFromSAP;
 use super::Part;
 
 impl Part {
-    pub fn polish_capacitor(&mut self, cdb_part: &PartFromCDB, sap_part: &PartFromSAP) {
-        self.capacitor_check_value(cdb_part, sap_part);
-        self.capacitor_check_category(cdb_part, sap_part);
+    pub fn polish_capacitor(&mut self, sap_part: &PartFromSAP) {
+        self.capacitor_check_value(sap_part);
+        self.capacitor_check_category(sap_part);
     }
 
-    fn capacitor_check_value(&mut self, cdb_part: &PartFromCDB, sap_part: &PartFromSAP) -> &mut Self{
-        if cdb_part.value.is_empty() {
-            self.value = cdb_part.value.clone() + "V"; // add unit to value field
+    fn capacitor_check_value(&mut self, sap_part: &PartFromSAP) -> &mut Self{
+        if !self.value.is_empty() {
+            self.value.push_str("V"); // add unit to value field
         }
         self
     }
 
-    fn capacitor_check_category(&mut self, cdb_part: &PartFromCDB, sap_part: &PartFromSAP) -> &mut Self{
+    fn capacitor_check_category(&mut self, sap_part: &PartFromSAP) -> &mut Self{
         self.category = "CAP".to_string();
         self
     }
 
-    fn capacitor_check_voltage(&mut self, cdb_part: &PartFromCDB, sap_part: &PartFromSAP) -> &mut Self{
-        
-        self.voltage = cdb_part.voltage.clone();
+    fn capacitor_check_voltage(&mut self, sap_part: &PartFromSAP) -> &mut Self{
+        if !self.voltage.is_empty() {
+            self.voltage.push_str("V"); // add unit to value field
+        }
         self
     }
 }
-
-
-
-
-
-
-
-
