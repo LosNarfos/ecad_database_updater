@@ -1,5 +1,3 @@
-use std::fmt;
-
 use serde::Deserialize;
 
 use crate::PartType;
@@ -178,34 +176,43 @@ impl Part {
         self
     }
 
-    fn check_stock_2100(&mut self, sap_part: &PartFromSAP) -> &mut Self{
-        self.stock_2100 = sap_part.stock_2100.clone();
-        self
-    }
-
-    fn check_stock_2720(&mut self, sap_part: &PartFromSAP) -> &mut Self{
-        self.stock_2720 = sap_part.stock_2720.clone();
+    fn check_stock(&mut self, sap_part: &PartFromSAP) -> &mut Self{
+        // remove the unnecessary decimal places
+        self.stock_2100 = sap_part.stock_2100.replace(".000", "");
+        self.stock_2720 = sap_part.stock_2720.replace(".000", "");
         self
     }
 
     fn check_price(&mut self, sap_part: &PartFromSAP) -> &mut Self{
+        self.price_2100 = sap_part.price_2100.clone();
+        self.price_2720 = sap_part.price_2720.clone();
+        self
 
-        if sap_part.price_info != "" {
-            let splitted: Vec<&str> = sap_part.price_info.split(&['-', ' ', '/'][..]).collect();
-            // example: 
-            // let splitted: Vec<&str> = "2100-33.46 CHF/100-1,500.000".split(&['-', ' ', '/'][..]).collect();
-            // assert_eq!(splitted, ["2100", "33.46", "CHF", "100", "1,500.000"]);
+        // Old code for getting price info from the old concatonated SAP string
+        // if sap_part.price_info != "" {
+        //     let splitted: Vec<&str> = sap_part.price_info.split(&['-', ' ', '/'][..]).collect();
+        //     // example: 
+        //     // let splitted: Vec<&str> = "2100-33.46 CHF/100-1,500.000".split(&['-', ' ', '/'][..]).collect();
+        //     // assert_eq!(splitted, ["2100", "33.46", "CHF", "100", "1,500.000"]);
 
-            let price_per_bulk: f32 = splitted[1].to_string().replace(",", "").parse().unwrap();
-            let bulk_size: f32 = splitted[3].to_string().replace(",", "").parse().unwrap();
-            let price_per_unit: f32 = price_per_bulk / bulk_size;
+        //     let price_per_bulk: f32 = splitted[1].to_string().replace(",", "").parse().unwrap();
+        //     let bulk_size: f32 = splitted[3].to_string().replace(",", "").parse().unwrap();
+        //     let price_per_unit: f32 = price_per_bulk / bulk_size;
     
-            self.price_2720 = format!("{:.4}", price_per_unit);
-        }
-        else {
-            self.price_2720 = "".to_string();
-        }
+        //     self.price_2720 = format!("{:.4}", price_per_unit);
+        // }
+        // else {
+        //     self.price_2720 = "".to_string();
+        // }
 
+   
+    }
+
+
+    fn check_consumption(&mut self, sap_part: &PartFromSAP) -> &mut Self{
+        // remove the unnecessary decimal places
+        self.consumption_2100 = sap_part.consumption_2100.replace(".000", "");
+        self.consumption_2720 = sap_part.consumption_2720.replace(".000", "");
         self
     }
 
@@ -268,6 +275,7 @@ impl Part {
 
 pub fn polish<'a>(part_type: PartType, parts: &'a mut Vec<Part>, sap_parts: &Vec<PartFromSAP>) ->  &'a mut Vec<Part> {
 
+    println!("  {}", part_type);
 
     for part in parts.iter_mut() {
         
@@ -283,9 +291,9 @@ pub fn polish<'a>(part_type: PartType, parts: &'a mut Vec<Part>, sap_parts: &Vec
             .check_second_source(&sap_part)
             .check_manufacturer(&sap_part)
             .check_manufacturer_no(&sap_part)
-            .check_stock_2100(&sap_part)
-            .check_stock_2720(&sap_part)
+            .check_stock(&sap_part)
             .check_price(&sap_part)
+            .check_consumption(&sap_part)
             .check_temperature(&sap_part)
             .check_height(&sap_part)
             .check_voltage(&sap_part)

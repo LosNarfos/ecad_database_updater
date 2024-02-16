@@ -29,8 +29,8 @@ pub fn import(part_class: PartType) -> Result<Vec<Part>, Error> {
     // let mut output_file = File::create("SAP_Export\\Extract_SAP4Zuken_fixed.csv")?;
     //println!("  Updating table in database: {}", part_type_to_str(&part_type));
 
-    //let path = format!("CDB_Export\\{}.xlsx", part_type.file_name_as_string());
-    let path = format!("CDB_Export\\{}.xlsx", part_class.to_string());
+    let path = format!("{}.xlsx", part_class.to_string());
+    //let path = format!("CDB_Export\\{}.xlsx", part_class.to_string());
 
     println!("  {}", path);
     let mut workbook: Xlsx<_> = open_workbook(path)?;

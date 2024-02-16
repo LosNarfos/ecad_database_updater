@@ -38,7 +38,7 @@ pub struct Record {
     pub price_info: String,
 }
 
-pub fn export(parts: &Parts) {
+pub fn export(parts: &mut Parts) {
         
     let mut wtr = WriterBuilder::new()
         .quote_style(QuoteStyle::Always)
@@ -70,6 +70,8 @@ pub fn export(parts: &Parts) {
     wtr.write_record(&["", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]).unwrap();
 
     // now for the real data
+
+
     for part in parts.capacitor.iter() { wtr.serialize( Record { default_stock_id: part.sap_number.clone(), ..Default::default() }).unwrap(); }
     for part in parts.connector.iter() { wtr.serialize( Record { default_stock_id: part.sap_number.clone(), ..Default::default() }).unwrap(); }
     for part in parts.diode.iter() { wtr.serialize( Record { default_stock_id: part.sap_number.clone(), ..Default::default() }).unwrap(); }

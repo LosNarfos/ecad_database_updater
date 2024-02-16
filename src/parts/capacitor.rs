@@ -9,7 +9,7 @@ impl Part {
 
     fn capacitor_check_value(&mut self, sap_part: &PartFromSAP) -> &mut Self{
         if !self.value.is_empty() {
-            self.value.push_str("V"); // add unit to value field
+            self.value.push_str("F"); // add unit to value field
         }
         self
     }
